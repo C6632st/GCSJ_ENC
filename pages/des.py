@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+from sidebar_utils import pub_render_sidebar
 # ----------标准DES表----------
 IP_TABLE = [
     58, 50, 42, 34, 26, 18, 10, 2,
@@ -111,8 +111,8 @@ S_BOXES = [
 # ---------- 初始化状态 ----------
 def init_session_state():
     """初始化所有状态变量"""
-    if 'phase' not in st.session_state:
-        st.session_state.phase = 1  # 1:密钥阶段, 2:明文阶段, 3:加密阶段
+    if 'desPhase' not in st.session_state:
+        st.session_state.desPhase = 1  # 1:密钥阶段, 2:明文阶段, 3:加密阶段
 
     if 'keys_generated' not in st.session_state:
         st.session_state.keys_generated = False
@@ -617,29 +617,29 @@ def main():
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(
-            f"<h3 style='text-align: center; {'color: green' if st.session_state.phase >= 1 else 'color: gray'}'> 阶段一：密钥</h3>",
+            f"<h3 style='text-align: center; {'color: green' if st.session_state.desPhase >= 1 else 'color: gray'}'> 阶段一：密钥</h3>",
             unsafe_allow_html=True)
     with col2:
         st.markdown(
-            f"<h3 style='text-align: center; {'color: green' if st.session_state.phase >= 2 else 'color: gray'}'> 阶段二：明文</h3>",
+            f"<h3 style='text-align: center; {'color: green' if st.session_state.desPhase >= 2 else 'color: gray'}'> 阶段二：明文</h3>",
             unsafe_allow_html=True)
     with col3:
         st.markdown(
-            f"<h3 style='text-align: center; {'color: green' if st.session_state.phase >= 3 else 'color: gray'}'> 阶段三：加密</h3>",
+            f"<h3 style='text-align: center; {'color: green' if st.session_state.desPhase >= 3 else 'color: gray'}'> 阶段三：加密</h3>",
             unsafe_allow_html=True)
 
     st.divider()
 
     # 第一阶段：密钥输入和生成
-    if st.session_state.phase == 1:
+    if st.session_state.desPhase == 1:
         render_phase1()
 
     # 第二阶段：明文输入
-    elif st.session_state.phase == 2:
+    elif st.session_state.desPhase == 2:
         render_phase2()
 
     # 第三阶段：加密流程
-    elif st.session_state.phase == 3:
+    elif st.session_state.desPhase == 3:
         render_phase3()
 
     # 侧边栏说明
@@ -647,6 +647,7 @@ def main():
 
 
 def render_phase1():
+
     """渲染第一阶段：密钥设置"""
     st.header("阶段一：密钥设置与生成")
 
@@ -741,7 +742,7 @@ def render_phase1():
         col1, col2 = st.columns([3, 1])
         with col2:
             if st.button("进入第二阶段（输入明文）", type="secondary", key="next_to_phase2"):
-                st.session_state.phase = 2
+                st.session_state.desPhase = 2
                 st.rerun()
 
 
@@ -757,7 +758,7 @@ def render_phase2():
             st.write(f"**密钥长度:** {len(st.session_state.get('key_64', ''))}位")
         with col2:
             if st.button("返回第一阶段", key="back_to_phase1"):
-                st.session_state.phase = 1
+                st.session_state.desPhase = 1
                 st.rerun()
 
     plain_option = st.radio(
@@ -812,11 +813,11 @@ def render_phase2():
         col1, col2 = st.columns(2)
         with col1:
             if st.button("返回第一阶段", key="back_to_keys_from_plain"):
-                st.session_state.phase = 1
+                st.session_state.desPhase = 1
                 st.rerun()
         with col2:
             if st.button("开始第三阶段（加密）", type="primary", key="start_encryption"):
-                st.session_state.phase = 3
+                st.session_state.desPhase = 3
                 st.rerun()
 
 
@@ -826,7 +827,7 @@ def render_phase3():
     if not (st.session_state.get('keys_generated') and st.session_state.get('plaintext_64')):
         st.error("缺少必要数据，请返回前两个阶段")
         if st.button("返回第一阶段"):
-            st.session_state.phase = 1
+            st.session_state.desPhase = 1
             st.rerun()
         return
 
@@ -867,11 +868,11 @@ def render_phase3():
         nav_cols = st.columns(4)
         with nav_cols[0]:
             if st.button("返回第一阶段", key="back_to_phase1_from_encrypt"):
-                st.session_state.phase = 1
+                st.session_state.desPhase = 1
                 st.rerun()
         with nav_cols[1]:
             if st.button("返回第二阶段", key="back_to_phase2_from_encrypt"):
-                st.session_state.phase = 2
+                st.session_state.desPhase = 2
                 st.rerun()
         with nav_cols[2]:
             if st.button("重新初始化", key="reset_encryptor"):
@@ -1068,6 +1069,10 @@ def render_round_status_table(current_round):
 
 
 def render_sidebar():
+    pub_render_sidebar(
+        algorithm_name="DES",
+        description="数据加密标准（Data Encryption Standard），分组64位，密钥56位（已不安全）。"
+    )
     """渲染侧边栏说明"""
     with st.sidebar:
         st.header("使用说明")
@@ -1092,7 +1097,7 @@ def render_sidebar():
         """)
 
         # 显示当前阶段状态
-        phase = st.session_state.phase
+        phase = st.session_state.desPhase
         if phase == 1:
             st.info(" **阶段一：密钥设置**")
             st.markdown("- 选择密钥输入方式")
