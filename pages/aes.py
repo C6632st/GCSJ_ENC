@@ -320,8 +320,8 @@ def render_phase3():
         st.divider()
 def render_sidebar():
     pub_render_sidebar(
-        algorithm_name="DES",
-        description="数据加密标准（Data Encryption Standard），分组64位，密钥56位（已不安全）。"
+        algorithm_name="AES",
+        description="高级加密标准（Advanced Encryption Standard），分组128位，支持128/192/256位密钥，安全高效。"
     )
     """渲染侧边栏说明"""
     with st.sidebar:
@@ -330,41 +330,39 @@ def render_sidebar():
         **三步流程:**
 
         1. **密钥阶段**
-           - 输入或选择密钥
-           - 生成16个子密钥
-           - 查看PC-1、循环移位、PC-2等详细过程
+           - 输入16字节ASCII密钥
+           - 执行密钥扩展（Key Expansion）
+           - 查看每轮轮密钥（Round Key）
 
         2. **明文阶段**
-           - 输入明文
-           - 查看明文矩阵
+           - 输入16字节ASCII明文
+           - 动态显示状态矩阵（4×4 列优先）
 
         3. **加密阶段**
-           - 初始化加密器
-           - 使用导航控制轮次
-           - 查看每轮详细结果
+           - 执行AES加密（10/12/14轮）
+           - 使用轮次导航查看每轮中间状态
+           - 观察 SubBytes、ShiftRows、MixColumns、AddRoundKey 效果
 
         **当前阶段:** 
         """)
 
-        # 显示当前阶段状态
-        phase = st.session_state.aesPhase
+        phase = st.session_state.get('phase', 1)
         if phase == 1:
             st.info(" **阶段一：密钥设置**")
-            st.markdown("- 选择密钥输入方式")
-            st.markdown("- 点击生成子密钥")
-            st.markdown("- 查看详细的密钥调度过程")
-            st.markdown("- 包括PC-1置换、循环移位、PC-2置换")
+            st.markdown("- 输入16字符ASCII密钥（对应AES-128）")
+            st.markdown("- 自动生成11个轮密钥（含初始轮）")
+            st.markdown("- 可展开查看轮密钥十六进制值")
         elif phase == 2:
             st.info(" **阶段二：明文输入**")
-            st.markdown("- 选择明文输入方式")
-            st.markdown("- 查看明文矩阵")
-            st.markdown("- 准备进入加密阶段")
+            st.markdown("- 输入16字符ASCII明文")
+            st.markdown("- 实时显示明文状态矩阵（4×4）")
+            st.markdown("- 准备进入加密演示")
         elif phase == 3:
             st.info(" **阶段三：加密流程**")
-            st.markdown("- 初始化加密器")
-            st.markdown("- 使用轮次导航")
-            st.markdown("- 查看详细结果")
-
+            st.markdown("- 点击“开始加密”启动过程")
+            st.markdown("- 使用“上一轮/下一轮”或跳转控制轮次")
+            st.markdown("- 查看每轮加密后的状态矩阵")
+            st.markdown("- 最终轮无 MixColumns 操作")
 def display_matrix(matrix, title="矩阵展示"):
     df = pd.DataFrame(
         matrix,

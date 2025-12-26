@@ -8,7 +8,7 @@ def pub_render_sidebar(algorithm_name: str, description: str):
     # === 统一内容（所有页面都一样）===
     st.sidebar.title("🔐 密码学可视化平台")
     st.sidebar.markdown("---")
-    st.sidebar.caption("© 2025 对称加密教学平台")
+    # st.sidebar.caption("© 2025 对称加密教学平台")
     st.sidebar.caption("支持 AES / DES / SM4")
 
     # === 动态内容（根据页面变化）===
