@@ -26,7 +26,7 @@ with col1:
         st.subheader("AES")
         st.caption("高级加密标准 · 安全高效")
         if st.button("进入 AES", type="primary", use_container_width=True):
-            st.switch_page("pages/aes.py")
+            st.switch_page("pages/AES.py")
 
 with col2:
     with st.container(border=True):
@@ -34,7 +34,7 @@ with col2:
         st.subheader("DES")
         st.caption("数据加密标准 · 经典但已过时")
         if st.button("进入 DES", type="primary", use_container_width=True):
-            st.switch_page("pages/des.py")
+            st.switch_page("pages/DES.py")
 
 with col3:
     with st.container(border=True):
@@ -42,7 +42,7 @@ with col3:
         st.subheader("SM4")
         st.caption("国密标准 · 中国商用密码")
         if st.button("进入 SM4", type="primary", use_container_width=True):
-            st.switch_page("pages/sm4.py")
+            st.switch_page("pages/SM4.py")
 # ====== 专属主页侧边栏 ======
 with st.sidebar:
     st.title("🔐 密码学可视化平台")
