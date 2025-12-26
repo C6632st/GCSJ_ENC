@@ -166,7 +166,7 @@ def render_sidebar():
         **当前阶段:** 
         """)
 
-        phase = st.session_state.get('phase', 1)
+        phase = st.session_state.get('sm4Phase', 1)
         if phase == 1:
             st.info(" **阶段一：密钥设置**")
             st.markdown("- 输入16字符ASCII主密钥")
