@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from AES.AESUtils import AESKeyExpansion
+from AESUtils import AESKeyExpansion
 from sidebar_utils import pub_render_sidebar
 
 def init_session_state():
