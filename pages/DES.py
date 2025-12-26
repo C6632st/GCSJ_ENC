@@ -1073,7 +1073,6 @@ def render_sidebar():
         algorithm_name="DES",
         description="数据加密标准（Data Encryption Standard），分组64位，密钥56位（已不安全）。"
     )
-    """渲染侧边栏说明"""
     with st.sidebar:
         st.header("使用说明")
         st.markdown("""

@@ -144,7 +144,6 @@ def render_sidebar():
         algorithm_name="SM4",
         description="中国国家密码标准（GB/T 32907-2016），分组128位，密钥128位，共32轮Feistel结构。"
     )
-    """渲染侧边栏说明"""
     with st.sidebar:
         st.header("使用说明")
         st.markdown("""
