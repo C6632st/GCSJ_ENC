@@ -17,16 +17,16 @@ def main():
     st.set_page_config(page_title="AES 算法分步演示", layout="wide")
     st.title("AES 加密算法分步演示系统")
 
-    # AES 版本选择器
-    aes_versions = ["AES-128", "AES-192", "AES-256"]
-    selected_aes_version = st.selectbox("请选择 AES 版本:", aes_versions)
-    textLen = 0
-    if selected_aes_version == "AES-128":
-        textLen = 16
-    elif selected_aes_version == "AES-192":
-        textLen = 24
-    else:
-        textLen = 32
+    # # AES 版本选择器
+    # aes_versions = ["AES-128", "AES-192", "AES-256"]
+    # selected_aes_version = st.selectbox("请选择 AES 版本:", aes_versions)
+    # textLen = 0
+    # if selected_aes_version == "AES-128":
+    #     textLen = 16
+    # elif selected_aes_version == "AES-192":
+    #     textLen = 24
+    # else:
+    #     textLen = 32
 
     # 显示当前阶段
     col1, col2, col3 = st.columns(3)
@@ -51,7 +51,7 @@ def main():
 
     # 第二阶段：密钥输入和生成
     elif st.session_state.aesPhase == 2:
-        render_phase2(textLen)
+        render_phase2()
     #
     # # 第三阶段：加密流程
     elif st.session_state.aesPhase == 3:
@@ -72,16 +72,16 @@ def render_phase1():
     st.session_state.selected_key_size = key_option
 
     expected_bytes = {128: 16, 192: 24, 256: 32}[key_option]
-    st.info(f"🔹 请在下一步输入 **{expected_bytes} 字节** 的 ASCII 字符串作为密钥（例如：'mysecretpass1234'）")
+    st.info(f"🔹 请在下一步输入 **{expected_bytes} 字节** 的 ASCII 字符串作为密钥")
 
     if st.button("下一步：输入密钥", type="primary"):
         st.session_state.aesPhase = 2
         st.rerun()
-def render_phase2(textLen):
+def render_phase2():
     """渲染第一阶段：密钥设置"""
     st.header("阶段一：密钥设置与生成")
 
-
+    textLen = int(st.session_state.selected_key_size / 8)
     current_key = None
     custom_key = st.text_input(f"输入{textLen}字符ASCII密钥:", value="", max_chars=textLen, key="custom_key_input")
     if len(custom_key) == textLen:
@@ -134,7 +134,7 @@ def render_phase2(textLen):
 
         # 显示/隐藏 S盒 和 Rcon 表格（可折叠）
         with st.expander("查看 S盒 与 轮常量表 (Rcon)", expanded=False):
-            col_sbox, col_rcon = st.columns(2)
+            col_sbox, col_rcon = st.columns([4,1])
             with col_sbox:
                 st.markdown("**S盒 (16x16)**")
                 # 假设 aes.s_box 是 256 字节的 list
@@ -323,7 +323,7 @@ def render_sidebar():
         algorithm_name="AES",
         description="高级加密标准（Advanced Encryption Standard），分组128位，支持128/192/256位密钥，安全高效。"
     )
-    """渲染侧边栏说明"""
+
     with st.sidebar:
         st.header("使用说明")
         st.markdown("""

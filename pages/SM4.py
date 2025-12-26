@@ -1,12 +1,9 @@
 # sm4_demo.py
 import streamlit as st
-
+import pandas as pd
 from sidebar_utils import pub_render_sidebar
 
 
-# ==============================
-# 内联 SM4WithAnimation 核心逻辑（简化版，仅保留必要部分）
-# ==============================
 def sm4Sbox(x):
     SboxTable = [
         0xd6, 0x90, 0xe9, 0xfe, 0xcc, 0xe1, 0x3d, 0xb7, 0x16, 0xb6, 0x14, 0xc2, 0x28, 0xfb, 0x2c, 0x05,
@@ -51,7 +48,7 @@ class SM4WithAnimation:
         ]
 
     def T(self, x):
-        # Non-linear transformation tau
+        # 非线性tau
         x0 = (x >> 24) & 0xFF
         x1 = (x >> 16) & 0xFF
         x2 = (x >> 8) & 0xFF
@@ -62,7 +59,7 @@ class SM4WithAnimation:
         y3 = sm4Sbox(x3)
         y = (y0 << 24) | (y1 << 16) | (y2 << 8) | y3
 
-        # Linear transformation L
+        # 线性 L
         z = y ^ ROTL(y, 2) ^ ROTL(y, 10) ^ ROTL(y, 18) ^ ROTL(y, 24)
         return z
 
@@ -130,14 +127,12 @@ class SM4WithAnimation:
             state = new_state
             self.encrypt_steps.append(step)
 
-        # Final output (reverse order for SM4)
+        # 最终输出
         cipher = [state[3], state[2], state[1], state[0]]
         ciphertext = b''.join(c.to_bytes(4, 'big') for c in cipher)
         return self.encrypt_steps, ciphertext
 
-# ==============================
-# Streamlit App
-# ==============================
+# streamlit
 
 def init_session_state():
     if 'sm4Phase' not in st.session_state:
@@ -247,7 +242,7 @@ def render_phase2():
         steps = st.session_state.key_schedule_steps
         total = len(steps)  # 32
         idx = st.session_state.get('current_key_round', 0)
-        idx = max(0, min(idx, total - 1))
+        idx = max(1, min(idx, total))
 
         # S盒展示（可折叠）
         with st.expander("查看 S 盒", expanded=False):
@@ -261,17 +256,17 @@ def render_phase2():
                 st.session_state.current_key_round -= 1
                 st.rerun()
         with nav2:
-            target = st.number_input("轮次:", 0, total-1, idx)
+            target = st.number_input("轮次:", 1, total, idx)
             if target != idx:
                 st.session_state.current_key_round = target
                 st.rerun()
         with nav3:
-            if st.button("下一轮 ▶", disabled=(idx >= total-1)):
+            if st.button("下一轮 ▶", disabled=(idx >= total)):
                 st.session_state.current_key_round += 1
                 st.rerun()
 
         # 显示当前轮
-        step = steps[idx]
+        step = steps[idx-1]
         st.markdown(f"### 第 {idx} 轮密钥扩展")
         st.write(f"**CK[{idx}]**: `0x{step['CK']:08X}`")
         st.write(f"**RK[{idx}]**: `0x{step['RK']:08X}`")
@@ -311,7 +306,7 @@ def render_phase3():
         steps = st.session_state.encrypt_steps
         total = len(steps)  # 32
         idx = st.session_state.get('current_encrypt_round', 0)
-        idx = max(0, min(idx, total - 1))
+        idx = max(1, min(idx, total ))
 
         # 导航
         nav1, nav2, nav3 = st.columns([1, 2, 1])
@@ -320,24 +315,49 @@ def render_phase3():
                 st.session_state.current_encrypt_round -= 1
                 st.rerun()
         with nav2:
-            target = st.number_input("轮次:", 0, total-1, idx)
+            target = st.number_input("轮次:", 0, total, idx)
             if target != idx:
                 st.session_state.current_encrypt_round = target
                 st.rerun()
         with nav3:
-            if st.button("下一轮 ▶", disabled=(idx >= total-1)):
+            if st.button("下一轮 ▶", disabled=(idx >= total)):
                 st.session_state.current_encrypt_round += 1
                 st.rerun()
 
         # 显示当前轮
-        step = steps[idx]
+        step = steps[idx-1]
         st.markdown(f"### 第 {idx} 轮加密")
-        st.write(f"**输入状态**: {[f'0x{x:08X}' for x in step['input']]}")
+        # st.write(f"**输入状态**: {[f'0x{x:08X}' for x in step['input']]}")
+        display_matrix(hex_list_to_4x4_hex_matrix([f'0x{x:08X}' for x in step['input']]),'输入状态')
         st.write(f"**T 函数输出**: `0x{step['T_output']:08X}`")
-        st.write(f"**输出状态**: {[f'0x{x:08X}' for x in step['output']]}")
+        # st.write(f"**输出状态**: {[f'0x{x:08X}' for x in step['output']]}")
+        display_matrix(hex_list_to_4x4_hex_matrix([f'0x{x:08X}' for x in step['output']]),'输出状态')
 
-        if idx == total - 1:
+        if idx == total :
             st.success(f"✅ 最终密文: `{st.session_state.ciphertext}`")
+def display_matrix(matrix, title="矩阵展示"):
+    df = pd.DataFrame(
+        matrix,
+        columns=["Byte 0", "Byte 1", "Byte 2", "Byte 3"],
+        index=[f"Row {i}" for i in range(4)])
+    # 显示为交互式表格（支持排序等）
+    st.subheader(title)
+    st.dataframe(df, use_container_width=True)
 
+
+def hex_list_to_4x4_hex_matrix(hex_list):
+    """将4个32位十六进制字符串列表转换为4x4十六进制字符串矩阵"""
+    matrix = []
+    for hex_str in hex_list:
+        # 去掉'0x'前缀，确保是8位十六进制
+        hex_val = hex_str[2:] if hex_str.startswith('0x') else hex_str
+        # 补齐8位
+        hex_val = hex_val.zfill(8)
+
+        # 每2个十六进制字符为一个字节，保持为十六进制字符串
+        row = [hex_val[i:i + 2].upper() for i in range(0, 8, 2)]
+        matrix.append(row)
+
+    return matrix
 if __name__ == "__main__":
     main()
